@@ -85,3 +85,37 @@ def compute_breakdown(*, start_date: date, months: int, days: int, estimated_cos
         )
 
     return Breakdown(daily_rate=_round2(daily_rate), basis_days=basis_days, periods=periods)
+
+
+def contract_end_date(start_date: date, months: int, days: int) -> date:
+    """The last day of a contract, counting the start date as day 1 (1 Nov + 1 month = 30 Nov, 1 Nov + 20 days = 20 Nov).
+
+    The reverse of the frontend's period-from-end-date: whole months first, then the leftover days.
+    """
+    after_months = add_months(start_date, months)
+    return after_months + timedelta(days=days - 1)
+
+
+def round_money(value: float) -> float:
+    """Rounds rupees to paise the same way every figure in the app is rounded."""
+    return _round2(value)
+
+
+#: How many days past the end date (or past the last confirmation) the extension is charged without being confirmed
+EXTENSION_GRACE_DAYS = 7
+
+
+@dataclass(frozen=True)
+class Extension:
+    days: int
+    start: date | None  # first extra day
+    end: date | None  # last extra day so far
+    amount: float
+
+
+def compute_extension(*, end_date: date, until: date, daily_cost: float) -> Extension:
+    """The days a contract has run past its end date, up to `until` (inclusive), charged at the cost for a day."""
+    days = max((until - end_date).days, 0)
+    if days == 0:
+        return Extension(days=0, start=None, end=None, amount=0.0)
+    return Extension(days=days, start=end_date + timedelta(days=1), end=until, amount=round_money(days * daily_cost))

@@ -10,7 +10,7 @@ type Props = {
   kind: string;
   /** Extra warning, e.g. "Its uploaded documents will be deleted too." */
   warning?: string;
-  /** Reject (throw) to keep the dialog open and show the message, e.g. "still used by a contract" */
+  /** Reject (throw) to keep the dialog open and show the message, e.g. "still in use" */
   onConfirm: () => Promise<void>;
   onCancel: () => void;
 };

@@ -12,7 +12,8 @@ config = context.config
 # The database URL comes from app settings (.env), not alembic.ini
 config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
-if config.config_file_name is not None:
+# (skipped when the API runs the migrations itself on startup, so it does not reset the server's logging)
+if config.config_file_name is not None and config.attributes.get("configure_logger", True):
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata

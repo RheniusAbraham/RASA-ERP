@@ -59,8 +59,8 @@ def test_missing_customer_is_404(client):
 
 MATERIAL = {
     "name": "M-Sand",
-    "costPerPiece": 45.75,
     "totalQuantityOwned": 1200,
+    "quantityUnit": "sq ft",
     "structuralDescription": "Fine aggregate, 4.75mm",
     "additionalInformation": "",
 }
@@ -70,21 +70,42 @@ def test_material_crud(client):
     created = client.post(f"{API}/materials", json=MATERIAL)
     assert created.status_code == 201, created.text
     material = created.json()
-    assert material["costPerPiece"] == 45.75 and material["additionalInformation"] == ""
-    assert material["totalQuantityOwned"] == 1200
+    assert "rate" not in material and "rateUnit" not in material
+    assert material["totalQuantityOwned"] == 1200 and material["quantityUnit"] == "sq ft"
+    assert material["additionalInformation"] == ""
+    assert "costPerPiece" not in material
 
     assert len(client.get(f"{API}/materials").json()) == 1
-    updated = client.put(f"{API}/materials/{material['id']}", json={**MATERIAL, "costPerPiece": 50})
-    assert updated.json()["costPerPiece"] == 50
+    updated = client.put(f"{API}/materials/{material['id']}", json={**MATERIAL, "totalQuantityOwned": 900})
+    assert updated.json()["totalQuantityOwned"] == 900
     assert client.delete(f"{API}/materials/{material['id']}").status_code == 204
     assert client.get(f"{API}/materials/{material['id']}").status_code == 404
 
 
 def test_material_validation(client):
     assert client.post(f"{API}/materials", json={**MATERIAL, "name": ""}).status_code == 422
-    assert client.post(f"{API}/materials", json={**MATERIAL, "costPerPiece": -5}).status_code == 422
     assert client.post(f"{API}/materials", json={**MATERIAL, "totalQuantityOwned": -1}).status_code == 422
     assert client.post(f"{API}/materials", json={**MATERIAL, "totalQuantityOwned": 2.5}).status_code == 422
     missing = {k: v for k, v in MATERIAL.items() if k != "totalQuantityOwned"}
     assert client.post(f"{API}/materials", json=missing).status_code == 422
     assert client.post(f"{API}/materials", json={**MATERIAL, "structuralDescription": ""}).status_code == 422
+
+
+def test_a_unit_that_is_not_on_the_list_can_be_typed_in(client):
+    response = client.post(f"{API}/materials", json={**MATERIAL, "quantityUnit": "  cu yd "})
+    assert response.status_code == 201
+    assert response.json()["quantityUnit"] == "cu yd"  # whitespace is trimmed
+
+
+def test_the_quantity_unit_is_required(client):
+    without = {k: v for k, v in MATERIAL.items() if k != "quantityUnit"}
+    assert client.post(f"{API}/materials", json=without).status_code == 422
+    assert client.post(f"{API}/materials", json={**MATERIAL, "quantityUnit": "   "}).status_code == 422
+    assert client.post(f"{API}/materials", json={**MATERIAL, "quantityUnit": "x" * 41}).status_code == 422
+
+
+def test_materials_have_no_price(client):
+    # a price sent by an old client is ignored, and none is stored or returned
+    made = client.post(f"{API}/materials", json={**MATERIAL, "rate": 10, "rateUnit": "Per Day"})
+    assert made.status_code == 201, made.text
+    assert "rate" not in made.json() and "rateUnit" not in made.json()

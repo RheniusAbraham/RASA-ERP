@@ -12,6 +12,8 @@ type Props = {
   placeholder?: string;
   /** Starting value (ISO YYYY-MM-DD), e.g. when editing a record */
   defaultValue?: string;
+  /** Makes the picker controlled: the parent decides what is shown (it can change it from elsewhere) */
+  value?: string;
   onChange?: (value: string) => void;
 };
 
@@ -33,12 +35,13 @@ const display = (s: string) => {
 };
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 
-export default function DatePicker({ name, required, min, max, placeholder = "DD-MM-YYYY", defaultValue = "", onChange }: Props) {
+export default function DatePicker({ name, required, min, max, placeholder = "DD-MM-YYYY", defaultValue = "", value: controlled, onChange }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  const [value, setValue] = useState(defaultValue);
+  const [inner, setValue] = useState(defaultValue);
+  const value = controlled ?? inner;
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"days" | "months" | "years">("days");
   const [cursor, setCursor] = useState(() => new Date()); // month being shown

@@ -6,7 +6,8 @@ import { Home, ChevronRight } from "lucide-react";
 
 const titles: Record<string, string> = {
   "/": "Dashboard",
-  "/contracts": "Scaffolding Contracts",
+  "/manage-contracts": "Manage Contracts",
+  "/closed-contracts": "Closed Contracts",
   "/materials": "Our Materials",
   "/customers": "Our Customers",
   "/drivers": "Our Drivers",

@@ -26,6 +26,31 @@ function addMonths(d: Date, n: number) {
   return new Date(target.getFullYear(), target.getMonth(), Math.min(d.getDate(), lastDay));
 }
 
+/**
+ * The last day of a contract (ISO), counting the start date as day 1: 1 Nov + 1 month = 30 Nov,
+ * 1 Nov + 20 days = 20 Nov. Same as the end of the last month-by-month period. Null until the
+ * start date and a time period are set.
+ */
+export function contractEndDate(startDate: string, months: number, days: number): string | null {
+  if (!startDate || !(months * 30 + days > 0)) return null;
+  const start = fromISO(startDate);
+  const from = addMonths(start, months);
+  return toISO(days > 0 ? addDays(from, days - 1) : addDays(from, -1));
+}
+
+/**
+ * The time period that ends on `endDate` when starting on `startDate` (the reverse of contractEndDate):
+ * whole months first, then the days left over. Null when the end is before the start.
+ */
+export function periodBetween(startDate: string, endDate: string): { months: number; days: number } | null {
+  if (!startDate || !endDate || endDate < startDate) return null;
+  const start = fromISO(startDate);
+  const after = addDays(fromISO(endDate), 1); // the day after the last day
+  let months = 0;
+  while (addMonths(start, months + 1) <= after) months++;
+  return { months, days: dayDiff(addMonths(start, months), after) };
+}
+
 export function ordinal(n: number) {
   const mod100 = n % 100;
   if (mod100 >= 11 && mod100 <= 13) return `${n}th`;

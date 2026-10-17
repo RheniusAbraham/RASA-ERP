@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -14,6 +16,19 @@ from app.main import app
 PDF_BYTES = b"%PDF-1.4\n%RASA test document\n"
 PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
 NOT_A_REAL_FILE = b"MZ\x90\x00 this is an executable, not a document"
+
+
+@pytest.fixture(autouse=True)
+def no_startup_migrations(monkeypatch):
+    """The tests use their own throwaway database; the app must not migrate the real rasa_erp.db when it starts."""
+    monkeypatch.setattr(settings, "migrate_on_startup", False)
+
+
+@pytest.fixture(autouse=True)
+def fixed_today(monkeypatch):
+    """Pretend it is 1 April 2026, so the 1 May 2026 contracts used in the tests are still in the future.
+    Tests about the start date arriving change it again with monkeypatch."""
+    monkeypatch.setattr("app.services.deployment.today", lambda: date(2026, 4, 1))
 
 
 @pytest.fixture()

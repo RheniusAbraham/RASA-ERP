@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { Plus, Boxes, IndianRupee, Package, Ruler, StickyNote, X } from "lucide-react";
+import { Plus, Boxes, Package, Ruler, StickyNote, X } from "lucide-react";
 import AddMaterialDialog, { type Material } from "./AddMaterialDialog";
+import MaterialDistribution from "./MaterialDistribution";
 import CardActions from "@/components/ui/CardActions";
 import ConfirmDelete from "@/components/ui/ConfirmDelete";
 import { Pencil, Trash2 } from "lucide-react";
@@ -14,7 +15,6 @@ import { useData } from "@/lib/store";
 
 const spring = { type: "spring", stiffness: 260, damping: 30 } as const;
 const cardRadius = { borderRadius: 24 };
-const money = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 });
 const count = new Intl.NumberFormat("en-IN");
 
 export default function MaterialsView() {
@@ -88,12 +88,8 @@ export default function MaterialsView() {
                   </div>
                   <dl className="customer-details">
                     <div className="customer-field">
-                      <IndianRupee size={15} strokeWidth={1.75} className="customer-field-icon" />
-                      <div><dt>Cost For a Piece</dt><dd>₹{money.format(m.costPerPiece)}</dd></div>
-                    </div>
-                    <div className="customer-field">
                       <Package size={15} strokeWidth={1.75} className="customer-field-icon" />
-                      <div><dt>Total Quantity Owned</dt><dd>{count.format(m.totalQuantityOwned)} pcs</dd></div>
+                      <div><dt>Total Quantity Owned</dt><dd>{count.format(m.totalQuantityOwned - m.lost)} {m.quantityUnit}</dd></div>
                     </div>
                     <div className="customer-field">
                       <Ruler size={15} strokeWidth={1.75} className="customer-field-icon" />
@@ -187,12 +183,8 @@ export default function MaterialsView() {
                     exit={{ opacity: 0, transition: { duration: 0.1 } }}
                   >
                     <div className="customer-field">
-                      <IndianRupee size={15} strokeWidth={1.75} className="customer-field-icon" />
-                      <div><dt>Cost For a Piece</dt><dd>₹{money.format(material.costPerPiece)}</dd></div>
-                    </div>
-                    <div className="customer-field">
                       <Package size={15} strokeWidth={1.75} className="customer-field-icon" />
-                      <div><dt>Total Quantity Owned</dt><dd>{count.format(material.totalQuantityOwned)} pcs</dd></div>
+                      <div><dt>Total Quantity Owned</dt><dd>{count.format(material.totalQuantityOwned - material.lost)} {material.quantityUnit}</dd></div>
                     </div>
                     <div className="full">
                       <div className="customer-field">
@@ -207,6 +199,15 @@ export default function MaterialsView() {
                       </div>
                     </div>
                   </motion.dl>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0, transition: { delay: 0.18, duration: 0.3 } }}
+                    exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                  >
+                    <h4 className="form-section">Stock Distribution</h4>
+                    <MaterialDistribution materialId={material.id} />
+                  </motion.div>
                 </motion.div>
               </div>
             )}

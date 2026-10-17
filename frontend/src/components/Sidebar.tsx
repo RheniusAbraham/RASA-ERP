@@ -8,7 +8,8 @@ import {
   Users,
   IdCard,
   UserCog,
-  FileSignature,
+  FilePlus,
+  Archive,
   Boxes,
   Truck,
   Sun,
@@ -24,7 +25,10 @@ const sections = [
   },
   {
     heading: "Our Contracts",
-    links: [{ href: "/contracts", label: "Scaffolding Contracts", icon: FileSignature }],
+    links: [
+      { href: "/manage-contracts", label: "Manage Contracts", icon: FilePlus },
+      { href: "/closed-contracts", label: "Closed Contracts", icon: Archive },
+    ],
   },
   {
     heading: "Resources",

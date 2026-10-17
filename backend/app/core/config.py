@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     # SQLite for now; switching to PostgreSQL later only means changing this URL.
     database_url: str = f"sqlite:///{(BACKEND_DIR / 'rasa_erp.db').as_posix()}"
 
+    # Apply any database migrations that are waiting when the API starts
+    migrate_on_startup: bool = True
+
     # Where uploaded PDFs / photos are stored
     upload_dir: Path = BACKEND_DIR / "uploads"
     max_upload_mb: float = 25
